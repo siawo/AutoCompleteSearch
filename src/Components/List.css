@@ -1,3 +1,11 @@
+.list {
+    box-shadow: 2px 2px 2px black;
+}
 .selected {
     background-color: aqua;
+}
+.item {
+    display: inline-block;
+    width: 220px;
+    padding: 10px;
 }

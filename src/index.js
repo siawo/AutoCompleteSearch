@@ -11,7 +11,7 @@ ReactDOM.render(
       searchParam='q'
       listLength='5'
       addString='+in:login'
-      dataAccessor={datum => datum.login}
+      dataAccessor={datum => datum && datum.login}
     />
   </React.StrictMode>,
   document.getElementById('root')

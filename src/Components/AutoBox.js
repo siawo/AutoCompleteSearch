@@ -68,7 +68,7 @@ class App extends React.PureComponent {
             });
         }
       } else {
-        this.setState(() => (DEFAULT_STATE));
+        this.resetState();
       }
     },
       picker = ([e]) => [e.target.innerText];
@@ -106,7 +106,13 @@ class App extends React.PureComponent {
       }
     }
 
+    this.listMouseOver = (selectIndex) => {
+      this.setState(() => ({selectIndex}))
+    }
+
     this.keyUp = e => placeCaret(e.target, false);
+
+    this.resetState = () => this.setState(() => (DEFAULT_STATE))
   }
 
   updateValueByIndex(index) {
@@ -140,6 +146,8 @@ class App extends React.PureComponent {
           onInput={this.inputHandler}
           onKeyDown={this.keyDown}
           onKeyUp={this.keyUp}
+          reset={this.resetState}
+          fillValue={dataAccessor(list[selectIndex])|| dataAccessor(list[1])}
         />
         {
           showList
@@ -148,6 +156,7 @@ class App extends React.PureComponent {
               selectIndex={selectIndex}
               listLength={this.props.listLength}
               dataAccessor={dataAccessor}
+              mouseOver={this.listMouseOver}
             />
             : ''
         }

@@ -1,0 +1,28 @@
+.input {
+    border: 1px solid #5072fa;
+    display: inline-block;
+    width: 100%;
+    height: 20px;
+}
+.editable {
+    outline: none;
+    display: inline;
+}
+.fill {
+    display: inline;
+    background-color: #4291ff;
+    color: white;
+}
+.blankeditable {
+    display: inline-block;
+    width: 100%;
+    height: 100%;
+    outline: none;
+}
+.cancel {
+    float: right;
+    cursor: pointer;
+}
+.hide {
+    display: none;
+}

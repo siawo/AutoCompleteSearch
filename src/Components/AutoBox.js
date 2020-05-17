@@ -12,7 +12,8 @@ const DELAY = 500,
     value: '',
     showList: false,
     list: [],
-    selectIndex: -1
+    selectIndex: -1,
+    isSelectedValue: false
   };
 
 class App extends React.PureComponent {
@@ -23,17 +24,29 @@ class App extends React.PureComponent {
 
     const inputFn = (value) => {
       if (value) {
-        const { props } = this,
-          urlParamSet = new URLSearchParams(props.params),
-          urlObj = new URL(props.relativePath, props.baseURL),
+        const {
+          params,
+          relativePath,
+          baseURL,
+          searchParam,
+          addString,
+          dataAccessor
+        } = this.props,
+          urlParamSet = new URLSearchParams(params),
+          urlObj = new URL(relativePath, baseURL),
           showList = true;
 
-        urlParamSet.set(props.searchParam, value);
+        urlParamSet.set(searchParam, value);
         urlObj.search = urlParamSet.toString();
-        const url = urlObj.href + props.addString;
+        const url = urlObj.href + addString;
         let data = localStorage.getItem(url);
         if (data) {
-          this.setState(() => ({ value, list: JSON.parse(data), showList, selectIndex: -1 }));
+          this.setState(() => ({
+            value,
+            list: JSON.parse(data),
+            showList,
+            selectIndex: -1
+          }));
         } else {
           fetch(url, {
             header: {
@@ -42,9 +55,16 @@ class App extends React.PureComponent {
           })
             .then(response => response.json())
             .then(json => {
-              const list = json.items.sort()
+              const list = json.items.sort((item1, item2) =>
+                String(dataAccessor(item1).localeCompare(String(dataAccessor(item2)))));
               localStorage.setItem(url, JSON.stringify(list));
-              this.setState(() => ({ value, list, showList, selectIndex: -1 }));
+              this.setState(() => ({
+                value,
+                list,
+                showList,
+                selectIndex: -1,
+                isSelectedValue: false
+              }));
             });
         }
       } else {
@@ -56,10 +76,14 @@ class App extends React.PureComponent {
     this.inputHandler = debounce(inputFn, DELAY, picker);
 
     this.blur = () => {
-      this.setState(() => ({ showList: false }));
+      this.setState(() => ({
+        showList: false
+      }));
     }
     this.focus = () => {
-      this.setState(state => ({ showList: !!state.value }));
+      this.setState(state => ({
+        showList: !state.isSelectedValue && !!state.value
+      }));
     }
 
     this.keyDown = e => {
@@ -86,9 +110,16 @@ class App extends React.PureComponent {
   }
 
   updateValueByIndex(index) {
-    const { list } = this.state;
+    const { list } = this.state,
+      { dataAccessor } = this.props;
     if (index > -1 && index < list.length) {
-      this.setState(() => ({ value: list[index].login, showList: false, list: [], selectIndex: -1 }))
+      this.setState(() => ({
+        value: dataAccessor(list[index]),
+        showList: false,
+        list: [],
+        selectIndex: -1,
+        isSelectedValue: true
+      }))
     }
   }
 
@@ -98,14 +129,17 @@ class App extends React.PureComponent {
       list,
       selectIndex,
       value
-    } = this.state;
+    } = this.state,
+    {
+      dataAccessor
+    } = this.props;
     return (
       <div className='container' onBlur={this.blur} onFocus={this.focus}>
-        <InputBox 
-        value={value} 
-        onInput={this.inputHandler}
-        onKeyDown={this.keyDown}
-        onKeyUp={this.keyUp}
+        <InputBox
+          value={value}
+          onInput={this.inputHandler}
+          onKeyDown={this.keyDown}
+          onKeyUp={this.keyUp}
         />
         {
           showList
@@ -113,6 +147,7 @@ class App extends React.PureComponent {
               list={list}
               selectIndex={selectIndex}
               listLength={this.props.listLength}
+              dataAccessor={dataAccessor}
             />
             : ''
         }

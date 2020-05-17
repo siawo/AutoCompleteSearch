@@ -1,23 +1,25 @@
 import React from 'react';
 import './AutoBox.css';
 import List from './List.js';
+import InputBox from './InputBox.js';
 import debounce from '../utils/debounce.js';
 import placeCaret from '../utils/placecaret.js';
 
 const DELAY = 500,
   UP_ARROW_CODE = 38,
-  DOWN_ARROW_CODE = 40;
+  DOWN_ARROW_CODE = 40,
+  DEFAULT_STATE = {
+    value: '',
+    showList: false,
+    list: [],
+    selectIndex: -1
+  };
 
 class App extends React.PureComponent {
   constructor(props) {
     super(props);
 
-    this.state = {
-      value: '',
-      showList: false,
-      list: [],
-      selectIndex: -1
-    };
+    this.state = DEFAULT_STATE;
 
     const inputFn = (value) => {
       if (value) {
@@ -46,7 +48,7 @@ class App extends React.PureComponent {
             });
         }
       } else {
-        this.setState(() => ({ value, list: [], showList: false, selectIndex: -1 }))
+        this.setState(() => (DEFAULT_STATE));
       }
     },
       picker = ([e]) => [e.target.innerText];
@@ -60,16 +62,16 @@ class App extends React.PureComponent {
       this.setState(state => ({ showList: !!state.value }));
     }
 
-    this.selection = e => {
+    this.keyDown = e => {
       const keyCode = e.keyCode;
+      let { selectIndex, list, showList } = this.state;
       if (keyCode === 13) {
         e.preventDefault();
+        this.updateValueByIndex(selectIndex)
         return;
       }
-
-      let { selectIndex, list, showList } = this.state;
       if ([UP_ARROW_CODE, DOWN_ARROW_CODE].includes(keyCode) && list.length && showList) {
-        const maxVal = Math.min(this.props.listLength, list.length)
+        const maxVal = Math.min(this.props.listLength, list.length);
         if (keyCode === UP_ARROW_CODE) {
           selectIndex = (maxVal + selectIndex - (selectIndex === -1 ? 0 : 1)) % maxVal;
         } else if (keyCode === DOWN_ARROW_CODE) {
@@ -79,28 +81,39 @@ class App extends React.PureComponent {
         this.setState(() => ({ selectIndex }));
       }
     }
+
+    this.keyUp = e => placeCaret(e.target, false);
+  }
+
+  updateValueByIndex(index) {
+    const { list } = this.state;
+    if (index > -1 && index < list.length) {
+      this.setState(() => ({ value: list[index].login, showList: false, list: [], selectIndex: -1 }))
+    }
   }
 
   render() {
-    const { showList, list, selectIndex } = this.state;
+    const {
+      showList,
+      list,
+      selectIndex,
+      value
+    } = this.state;
     return (
-      <div className='container' onFocus={this.focus}>
-        <div className='input'>
-          <div className='editable' suppressContentEditableWarning="true" contentEditable='true' onInput={this.inputHandler} onKeyDown={this.selection} onKeyUp={e => placeCaret(e.target, false)}>
-            {this.state.value}
-          </div>
-          <div className='fill'>
-          </div>
-          <div className='cancel'>
-
-          </div>
-        </div>
+      <div className='container' onBlur={this.blur} onFocus={this.focus}>
+        <InputBox 
+        value={value} 
+        onInput={this.inputHandler}
+        onKeyDown={this.keyDown}
+        onKeyUp={this.keyUp}
+        />
         {
           showList
             ? <List
               list={list}
               selectIndex={selectIndex}
-              listLength={this.props.listLength} />
+              listLength={this.props.listLength}
+            />
             : ''
         }
       </div>

@@ -1,0 +1,10 @@
+.editable {
+    display: inline-block;
+    width: 200px;
+    height: 20px;
+    max-height: 20px;
+}
+.container {
+    height: 20px;
+    max-height: 20px;
+}
